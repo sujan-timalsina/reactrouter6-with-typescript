@@ -3,11 +3,15 @@ import { matchSorter } from "match-sorter";
 // import sortBy from "sort-by";
 import { sortBy } from "sort-by-typescript";
 
-type ContactTypes = {
+export type ContactTypes = {
     id: string;
     createdAt: number;
     first?: string;
     last?: string;
+    avatar?: string,
+    twitter?: string,
+    notes?: string,
+    favorite?: boolean,
 }
 
 export async function getContacts(query?: string) {
@@ -38,7 +42,7 @@ export async function getContact(id: string) {
     return contact ?? null;
 }
 
-export async function updateContact(id: string, updates: ContactTypes) {
+export async function updateContact(id: string, updates: Partial<ContactTypes>) {
     await fakeNetwork();
     let contacts = await localforage.getItem<ContactTypes[]>("contacts");
     if (!contacts) contacts = [];

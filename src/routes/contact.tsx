@@ -1,15 +1,44 @@
-import { Form } from "react-router-dom";
+// import { Form, useLoaderData, LoaderFunction, ActionFunctionArgs, Params, ParamParseKey } from "react-router-dom";
+import { Form, useLoaderData, LoaderFunction } from "react-router-dom";
+import { ContactTypes, getContact } from "../contacts";
 
-type ContactTypes = {
-    first: string,
-    last: string,
-    avatar: string,
-    twitter: string,
-    notes: string,
-    favorite: boolean,
+// type ContactTypes = {
+//     first: string,
+//     last: string,
+//     avatar: string,
+//     twitter: string,
+//     notes: string,
+//     favorite: boolean,
+// };
+
+type ContactLoaderData = {
+    contact: ContactTypes;
 };
 
-const Favorite = ({ contact }: { contact: ContactTypes }) => {
+type LoaderParams = {
+    contactId: string;
+};
+
+// const Paths = {
+//     contactDetail: "/todos/:contactId",
+// } as const;
+
+// interface ContactLoaderArgs extends ActionFunctionArgs {
+//     params: Params<ParamParseKey<typeof Paths.contactDetail>>;
+// }
+
+// export async function loader({ params }: { params: LoaderParams }) {
+//     const contact = await getContact(params.contactId);
+//     return { contact };
+// };
+
+export const loader: LoaderFunction = async ({ params }) => {
+    const typedParams = params as unknown as LoaderParams;
+    const contact = await getContact(typedParams.contactId);
+    return { contact };
+}
+
+const Favorite = ({ contact }: { contact: Partial<ContactTypes> }) => {
     // yes, this is a `let` for later
     let favorite = contact.favorite;
     return (
@@ -30,21 +59,24 @@ const Favorite = ({ contact }: { contact: ContactTypes }) => {
 }
 
 const Contact = () => {
-    const contact: ContactTypes = {
-        first: "Your",
-        last: "Name",
-        avatar: "https://placekitten.com/g/200/200",
-        twitter: "your_handle",
-        notes: "Some notes",
-        favorite: true,
-    };
+    const { contact } = useLoaderData() as ContactLoaderData;
+
+    // const contact: Omit<ContactTypes, 'id' | 'createdAt'> = {
+    // const contact: Partial<ContactTypes> = {
+    //     first: "Your",
+    //     last: "Name",
+    //     avatar: "https://placekitten.com/g/200/200",
+    //     twitter: "your_handle",
+    //     notes: "Some notes",
+    //     favorite: true,
+    // };
 
     return (
         <div id="contact">
             <div>
                 <img
                     key={contact.avatar}
-                    src={contact.avatar ?? null}
+                    src={contact.avatar}
                 />
             </div>
 
