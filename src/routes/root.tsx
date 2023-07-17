@@ -1,4 +1,5 @@
-import { Outlet, NavLink, useLoaderData, Form, redirect, useNavigation, LoaderFunction } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Outlet, NavLink, useLoaderData, Form, redirect, useNavigation, LoaderFunction, useSubmit } from "react-router-dom";
 import { ContactTypes, createContact, getContacts } from "../contacts";
 
 // type LoaderAllParams = {
@@ -7,14 +8,14 @@ import { ContactTypes, createContact, getContacts } from "../contacts";
 
 export const loader: LoaderFunction = async ({ request }) => {
     const url = new URL(request.url);
-    const q = url.searchParams.get("q");
-    if (q === null) {
-        const contacts = await getContacts();
-        return { contacts };
-    }
+    const q = url.searchParams.get("q") || "";
+    // if (q === null) {
+    //     const contacts = await getContacts();
+    //     return { contacts, q: undefined };
+    // }
 
     const contacts = await getContacts(q);
-    return { contacts };
+    return { contacts, q };
 }
 
 export async function action() {
@@ -25,11 +26,20 @@ export async function action() {
 
 type LoaderData = {
     contacts: ContactTypes[];
+    q: string | undefined;
 }
 
 const Root = () => {
-    const { contacts } = useLoaderData() as LoaderData;
+    const { contacts, q } = useLoaderData() as LoaderData;
+    const [query, setQuery] = useState(q);
     const navigation = useNavigation();
+    const submit = useSubmit();
+
+    const searching = navigation.location && new URLSearchParams(navigation.location.search).has("q");
+
+    useEffect(() => {
+        setQuery(q);
+    }, [q]);
 
     return (
         <>
@@ -39,15 +49,26 @@ const Root = () => {
                     <Form id="search-form" role="search">
                         <input
                             id="q"
+                            className={searching ? "loading" : ""}
                             aria-label="Search contacts"
                             placeholder="Search"
                             type="search"
                             name="q"
+                            // defaultValue={q}
+                            value={query}
+                            onChange={(e) => {
+                                setQuery(e.target.value);
+                                const isFirstSearch = q == null;
+                                submit(e.currentTarget.form, {
+                                    replace: !isFirstSearch,
+                                });
+                                // submit(e.currentTarget.form);
+                            }}
                         />
                         <div
                             id="search-spinner"
                             aria-hidden
-                            hidden={true}
+                            hidden={!searching}
                         />
                         <div
                             className="sr-only"
