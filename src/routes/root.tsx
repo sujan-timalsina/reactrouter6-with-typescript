@@ -1,8 +1,19 @@
-import { Outlet, NavLink, useLoaderData, Form, redirect, useNavigation } from "react-router-dom";
+import { Outlet, NavLink, useLoaderData, Form, redirect, useNavigation, LoaderFunction } from "react-router-dom";
 import { ContactTypes, createContact, getContacts } from "../contacts";
 
-export async function loader() {
-    const contacts = await getContacts();
+// type LoaderAllParams = {
+//     request: Request;
+// }
+
+export const loader: LoaderFunction = async ({ request }) => {
+    const url = new URL(request.url);
+    const q = url.searchParams.get("q");
+    if (q === null) {
+        const contacts = await getContacts();
+        return { contacts };
+    }
+
+    const contacts = await getContacts(q);
     return { contacts };
 }
 
@@ -25,7 +36,7 @@ const Root = () => {
             <div id="sidebar">
                 <h1>React Router Contacts</h1>
                 <div>
-                    <form id="search-form" role="search">
+                    <Form id="search-form" role="search">
                         <input
                             id="q"
                             aria-label="Search contacts"
@@ -42,7 +53,7 @@ const Root = () => {
                             className="sr-only"
                             aria-live="polite"
                         ></div>
-                    </form>
+                    </Form>
                     <Form method="post">
                         <button type="submit">New</button>
                     </Form>
